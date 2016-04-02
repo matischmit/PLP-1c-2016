@@ -47,24 +47,36 @@ frecuenciaTokens = [(\text -> freqRel text t) | t <- tokens]
 freqRel :: Texto -> Char -> Feature
 freqRel t c = fromIntegral(elemCount c t ) / (genericLength t)
 
+
+--funcion falopa para probar normalizarExtractor como dice el enunciado
+--uso: let txts = ["aa","ab","ugh"]
+--  normalizarExtractor txts funcionMagica  "ugh"
+funcionMagica :: Extractor
+funcionMagica  = (\text -> if (text == "aa") then -20.3 else if (text == "ab") then 1.0 else 10.5 ) 			   
+
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor = undefined
+normalizarExtractor ts e = (\t -> (e t) / (foldr1 max ( map ((abs).(e)) ts) ) )
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
-extraerFeatures = undefined
+extraerFeatures fs txts = [ (dameValores fs txts (txts!!i) ) | i <- [0..(length txts)-1] ]  --no me gusta esta resolucion revisar
+
+dameValores :: [Extractor] -> [Texto] -> Texto -> Instancia
+dameValores fs txts txt = [ (normalizarExtractor txts (fs!!i)) txt | i <- [0..length(fs)-1]]
+
 
 distEuclideana :: Medida
 distEuclideana p q = sqrt (sum (zipWith (\a b -> (a-b)**2) p q ) )
 
 distCoseno :: Medida
-distCoseno p q = ( sum (zipWith (\a b -> (a*b)) p q ))  / ( (norma p) * (norma q) )
+distCoseno p q = ( sum (zipWith (\a b -> (a*b)) p q ))  / ( (normaVector p) * (normaVector q) )
 
-norma :: [Feature] -> Float
-norma = sqrt . (foldr (\x r -> x**2 + r) 0 )
+normaVector :: [Feature] -> Float
+normaVector = sqrt . (foldr (\x r -> x**2 + r) 0 ) -- tambien vale = (sqrt . sum . map (**2))
+
 
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
 knn = undefined
-
+	
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy = undefined
 
