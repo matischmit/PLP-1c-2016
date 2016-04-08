@@ -1,6 +1,7 @@
 module Tp where
 
 import Data.List
+import Data.Maybe
 
 type Texto = String
 type Feature = Float
@@ -13,7 +14,7 @@ type Modelo = (Instancia -> Etiqueta)
 type Medida = (Instancia -> Instancia -> Float)
 
 tryClassifier :: [Texto] -> [Etiqueta] -> Float
-tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repeticionesPromedio] ++ frecuenciaTokens) x in
+tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repeticionesPromedio, palabrasClaves] ++ frecuenciaTokens ++ frecuenciaClaves) x in
     nFoldCrossValidation 5 xs y
 
 mean :: [Float] -> Float
@@ -55,8 +56,10 @@ funcionMagica :: Extractor
 funcionMagica  = (\text -> if (text == "aa") then -20.3 else if (text == "ab") then 1.0 else 10.5 ) 			   
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor ts e t = (\t -> (e t) / (foldr (max . abs . e) 0 ts) ) t
+--normalizarExtractor ts e = (\t -> (e t) / (foldr (max . abs . e) 0 ts) )
+--normalizarExtractor ts e t = (\t -> (e t) / (maximum $ map (abs. e) ts ) ) t
 --normalizarExtractor ts e = e
+normalizarExtractor ts e = let maximo = (foldr (max . abs . e) 0 ts ) in (\t -> (e t) / maximo)
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures fs txts = extraerFeatures2 [normalizarExtractor txts e | e <- fs] txts
@@ -65,6 +68,7 @@ extraerFeatures :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures2 es txts = [[e t | e <- es ] | t <- txts ]
 
 extraerFeatures fs txts = [[e t | e <- es ] | t <- txts ] 
+	--where es = [normalizarExtractor txts e | e <- fs]
 	where es = [normalizarExtractor txts e | e <- fs]
 	
 --extraerFeatures :: [Extractor] -> [Texto] -> Datos
@@ -126,3 +130,42 @@ validateAccuracy (td, vd, te, ve) = accuracy ve (validate td te vd)
 
 validate :: Datos -> [Etiqueta] -> Datos -> [Etiqueta] -- valida cada elemento de la particion de validación contra las de training con knn
 validate ts es vs = map (knn 15 ts es distEuclideana) vs
+
+
+
+
+
+--opcional - extractores
+
+diccionarioClaves :: [(Texto,Int)]		--textosImperativo ++ textosFuncional
+diccionarioClaves = [(";",30),("++",10),("--",40),("import",40),("namespace",100),("public",50),("module",40), ("while",40), ("for",42)] ++ [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-100), ("where",-70), ("let",-30)]
+
+--textosFuncional :: [(Texto,Int)]
+--textosFuncional = [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-40), ("where",-70), ("let",-40)]
+
+--Extractor que calcula un puntaje por programa dependiendo las palabras "claves" que aparecen
+palabrasClaves :: Extractor
+palabrasClaves = (\text -> fromIntegral (puntajeCadena text diccionarioClaves) )
+
+
+---funciones utiles intersect, isInfixOf, stripPrefix.. mas en Data.List
+-- Puntaje total del texto comparado con todas las tuplas
+puntajeCadena :: String -> [(Texto,Int)] -> Int
+puntajeCadena t [] = 0
+puntajeCadena t ((x,y):qs) = let res = procesar x (intersect t x ) in
+	if (isInfixOf x t ) then (res*y) + (puntajeCadena t qs) else (puntajeCadena t qs) 
+						
+-- Pasar esto a foldr o algo no recursivo
+
+---Precondicion el 1er string si o si está en el segundo que tiene las apariciones del 1ero + basura
+--Cuento la cantidad de veces que el 1ero aparece en el 2do
+procesar :: Texto -> Texto -> Int
+procesar t [] = 0
+procesar t qs = if (stripPrefix t qs == Nothing) then 1 else 1 + procesar t ( fromJust ( stripPrefix t qs ) )
+
+--Otro, similar al de frecuenciasTokens
+frecuenciaClaves :: [Extractor]
+frecuenciaClaves = [(\text -> freqCl text t) | t <- diccionarioClaves]
+
+freqCl :: Texto -> (Texto,Int) -> Feature
+freqCl t c = fromIntegral(puntajeCadena t [c] ) / (genericLength t)
