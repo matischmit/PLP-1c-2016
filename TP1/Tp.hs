@@ -2,6 +2,7 @@ module Tp where
 
 import Data.List
 import Data.Maybe
+import Data.Char -- ord
 
 type Texto = String
 type Feature = Float
@@ -14,9 +15,9 @@ type Modelo = (Instancia -> Etiqueta)
 type Medida = (Instancia -> Instancia -> Float)
 
 tryClassifier :: [Texto] -> [Etiqueta] -> Float
-tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repeticionesPromedio, palabrasClaves] ++ frecuenciaTokens ++ frecuenciaClaves) x in
+tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repeticionesPromedio, palabrasClaves] ++ frecuenciaTokens) x in
     nFoldCrossValidation 5 xs y
-
+-- ++ frecuenciaClaves
 mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
@@ -67,10 +68,10 @@ extraerFeatures :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures2 :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures2 es txts = [[e t | e <- es ] | t <- txts ]
 
-extraerFeatures fs txts = [[e t | e <- es ] | t <- txts ] 
+extraerFeatures fs txts = let es = [normalizarExtractor txts e | e <- fs] in 
+	[[e t | e <- es ] | t <- txts ] 
 	--where es = [normalizarExtractor txts e | e <- fs]
-	where es = [normalizarExtractor txts e | e <- fs]
-	
+
 --extraerFeatures :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures fs txts = [[e2 t | e2 <- [normalizarExtractor txts e | e <- fs] ] | t <- txts ] 
 --extraerFeatures fs txts = [[e2 t | t <- txts] | e2 <- [normalizarExtractor txts e | e <- fs] ]
@@ -169,3 +170,21 @@ frecuenciaClaves = [(\text -> freqCl text t) | t <- diccionarioClaves]
 
 freqCl :: Texto -> (Texto,Int) -> Feature
 freqCl t c = fromIntegral(puntajeCadena t [c] ) / (genericLength t)
+
+-- frecuencia de pares de palabras consecutivos
+
+frecuenciaParesConsecutivos :: Extractor
+frecuenciaParesConsecutivos t = let l = (split ' ' t) in mean (map (fromIntegral . fst) (cuentas (zip l (tail l) ) ) )
+
+autosplit :: [Char] -> [[Char]]
+autosplit s = foldr (\ x rec -> (breakAlphaNum x) ++ rec) [[]] (split ' ' s)
+
+breakAlphaNum :: [Char] -> [[Char]]
+breakAlphaNum [] = [[]]
+breakAlphaNum [c] = [[c]]
+breakAlphaNum (c1:c2:cs) = let rec = (breakAlphaNum (c2:cs)) in 
+	if (isAlphaNum c1) == (isAlphaNum c2) then 
+		(c1:(head rec)):(tail rec)
+	else
+		([c1]:rec)
+
