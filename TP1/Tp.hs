@@ -15,7 +15,7 @@ type Modelo = (Instancia -> Etiqueta)
 type Medida = (Instancia -> Instancia -> Float)
 
 tryClassifier :: [Texto] -> [Etiqueta] -> Float
-tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repeticionesPromedio, palabrasClaves] ++ frecuenciaTokens) x in
+tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repeticionesPromedio, palabrasClaves,frecuenciaParesConsecutivos] ++ frecuenciaTokens ++ frecuenciaClaves) x in
     nFoldCrossValidation 5 xs y
 -- ++ frecuenciaClaves
 mean :: [Float] -> Float
@@ -136,7 +136,7 @@ validate ts es vs = map (knn 15 ts es distEuclideana) vs
 --opcional - extractores
 
 diccionarioClaves :: [(Texto,Int)]		--textosImperativo ++ textosFuncional
-diccionarioClaves = [(";",30),("++",10),("--",40),("import",40),("namespace",100),("public",50),("module",40), ("while",40), ("for",42)] ++ [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-100), ("where",-70), ("let",-30)]
+diccionarioClaves = [(";",30),("++",10),("--",40),("import",20),("namespace",100),("public",50),("module",40), ("while",40), ("for",42)] ++ [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-100), ("where",-70), ("let",-30)]
 
 --textosFuncional :: [(Texto,Int)]
 --textosFuncional = [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-40), ("where",-70), ("let",-40)]
@@ -145,22 +145,24 @@ diccionarioClaves = [(";",30),("++",10),("--",40),("import",40),("namespace",100
 palabrasClaves :: Extractor
 palabrasClaves = (\text -> fromIntegral (puntajeCadena text diccionarioClaves) )
 
-
 ---funciones utiles intersect, isInfixOf, stripPrefix.. mas en Data.List
 -- Puntaje total del texto comparado con todas las tuplas
 puntajeCadena :: String -> [(Texto,Int)] -> Int
-puntajeCadena t [] = 0
-puntajeCadena t ((x,y):qs) = let res = procesar x (intersect t x ) in
-	if (isInfixOf x t ) then (res*y) + (puntajeCadena t qs) else (puntajeCadena t qs) 
-						
--- Pasar esto a foldr o algo no recursivo
+--puntajeCadena t [] = 0
+--puntajeCadena t ((x,y):qs) = let res = procesar x (intersect t x ) in
+--	if (isInfixOf x t ) then (res*y) + (puntajeCadena t qs) else (puntajeCadena t qs) 						
+puntajeCadena t = foldr f 0
+				  where f = (\(x,y) r -> if (isInfixOf x t ) then r + ((aparicionesEnIntersec x (intersect t x ) ) * y) else r )
+
+aparicionesEnIntersec :: Texto -> Texto -> Int
+aparicionesEnIntersec t qs = length [ True | c <- tails qs, isPrefixOf t c ]
 
 ---Precondicion el 1er string si o si está en el segundo que tiene las apariciones del 1ero + basura
 --Cuento la cantidad de veces que el 1ero aparece en el 2do
-procesar :: Texto -> Texto -> Int
-procesar t [] = 0
-procesar t qs = if (stripPrefix t qs == Nothing) then 1 else 1 + procesar t ( fromJust ( stripPrefix t qs ) )
-
+--procesar :: Texto -> Texto -> Int
+--procesar t [] = 0
+--procesar t qs = if (stripPrefix t qs == Nothing) then 1 else 1 + procesar t (fromJust (stripPrefix t qs ) )
+ 
 --Otro, similar al de frecuenciasTokens
 frecuenciaClaves :: [Extractor]
 frecuenciaClaves = [(\text -> freqCl text t) | t <- diccionarioClaves]
