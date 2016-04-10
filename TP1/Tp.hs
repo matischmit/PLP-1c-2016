@@ -63,15 +63,12 @@ normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor ts e = let maximo = (foldr (max . abs . e) 0 ts ) in (\t -> (e t) / maximo)
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
---extraerFeatures fs txts = extraerFeatures2 [normalizarExtractor txts e | e <- fs] txts
+extraerFeatures fs txts = let es = [normalizarExtractor txts e | e <- fs] in 
+							[[e t | e <- es ] | t <- txts ] 
 
+--extraerFeatures fs txts = extraerFeatures2 [normalizarExtractor txts e | e <- fs] txts
 --extraerFeatures2 :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures2 es txts = [[e t | e <- es ] | t <- txts ]
-
-extraerFeatures fs txts = let es = [normalizarExtractor txts e | e <- fs] in 
-	[[e t | e <- es ] | t <- txts ] 
-	--where es = [normalizarExtractor txts e | e <- fs]
-
 --extraerFeatures :: [Extractor] -> [Texto] -> Datos
 --extraerFeatures fs txts = [[e2 t | e2 <- [normalizarExtractor txts e | e <- fs] ] | t <- txts ] 
 --extraerFeatures fs txts = [[e2 t | t <- txts] | e2 <- [normalizarExtractor txts e | e <- fs] ]
@@ -97,7 +94,7 @@ knn k dss es m x = palabraMasRepetida (map snd (take k (ordenarVecinos dss es m 
 ordenarVecinos :: Datos -> [Etiqueta] -> Medida -> Instancia -> [(Float, Etiqueta)] -- devuelve un a lista de tuplas (distancia, etiqueta) ordenadas por distancia
 ordenarVecinos dss es m x = sort (zip (map (m x) dss) es)
 
-palabraMasRepetida :: (Ord a) => [a] -> a
+palabraMasRepetida :: (Ord a) => [a] -> a -- este Ord no deberia estar
 palabraMasRepetida = snd . (foldr1 max) . cuentas
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
