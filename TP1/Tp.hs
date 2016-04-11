@@ -102,11 +102,14 @@ accuracy xs ys = mean ( zipWith (\ a b -> if a==b then 1 else 0) xs ys )
 
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
 separarDatos ds es n p = (tomarTrain ds train1 train2 val, tomarVal ds val train1, tomarTrain es train1 train2 val, tomarVal es val train1) 
- where l = tamanioParticion ds n
-       train1 = l * (p-1)
-       val = l
-       train2 = (n - p) * l
+ where l = tamanioParticion ds n -- l es el tamanio de las particiones
+       train1 = l * (p-1) 	 	 -- train1 es la cantidad de elementos que tiene en total el primer conjunto de particiones de entrenamiento
+       val = l                   -- val es el tamanio de la particion de validacion
+       train2 = (n - p) * l      -- train2 es la cantidad de elementos que tiene en total el segundo conjunto de particiones de entrenamiento
 
+
+-- tomarTrain, dado una lista de t1+d+t2 elementos, remueve los "d" del medio
+-- La usamos para remover la particion de validacion, dejando solamente las de entrenamiento
 tomarTrain :: [a] -> Int -> Int -> Int -> [a]
 tomarTrain xs t1 t2 d = (take t1 xs) ++ (take t2 (drop (t1 + d) xs))
 
