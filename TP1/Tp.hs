@@ -49,34 +49,15 @@ frecuenciaTokens = [(\text -> freqRel text t) | t <- tokens]
 freqRel :: Texto -> Char -> Feature
 freqRel t c = fromIntegral(elemCount c t ) / (genericLength t)
 
-
---funcion falopa para probar normalizarExtractor como dice el enunciado
---uso: let txts = ["aa","ab","ugh"]
---  normalizarExtractor txts funcionMagica  "ugh"
-funcionMagica :: Extractor
-funcionMagica  = (\text -> if (text == "aa") then -20.3 else if (text == "ab") then 1.0 else 10.5 ) 			   
-
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
---normalizarExtractor ts e = (\t -> (e t) / (foldr (max . abs . e) 0 ts) )
---normalizarExtractor ts e t = (\t -> (e t) / (maximum $ map (abs. e) ts ) ) t
---normalizarExtractor ts e = e
 normalizarExtractor ts e = let maximo = (foldr (max . abs . e) 0 ts ) in (\t -> (e t) / maximo)
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures fs txts = let es = [normalizarExtractor txts e | e <- fs] in 
 							[[e t | e <- es ] | t <- txts ] 
 
---extraerFeatures fs txts = extraerFeatures2 [normalizarExtractor txts e | e <- fs] txts
---extraerFeatures2 :: [Extractor] -> [Texto] -> Datos
---extraerFeatures2 es txts = [[e t | e <- es ] | t <- txts ]
---extraerFeatures :: [Extractor] -> [Texto] -> Datos
---extraerFeatures fs txts = [[e2 t | e2 <- [normalizarExtractor txts e | e <- fs] ] | t <- txts ] 
---extraerFeatures fs txts = [[e2 t | t <- txts] | e2 <- [normalizarExtractor txts e | e <- fs] ]
-----extraerFeatures fs txts = [ (dameValores fs txts elem ) | elem <- txts ]  --no me gusta esta resolucion revisar
-
 dameValores :: [Extractor] -> [Texto] -> Texto -> Instancia
 dameValores fs txts txt = [ (normalizarExtractor txts elem) txt | elem <- fs]
-
 
 distEuclideana :: Medida
 distEuclideana p q = sqrt (sum (zipWith (\a b -> (a-b)**2) p q ) )
@@ -85,7 +66,7 @@ distCoseno :: Medida
 distCoseno p q = ( sum (zipWith (\a b -> (a*b)) p q ))  / ( (normaVector p) * (normaVector q) )
 
 normaVector :: [Feature] -> Float
-normaVector = sqrt . (foldr (\x r -> x*x + r) 0 ) -- tambien vale = (sqrt . sum . map (**2))
+normaVector = sqrt . (foldr (\x r -> x*x + r) 0 ) -- otra version = (sqrt . sum . map (**2))
 
 
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
@@ -94,7 +75,7 @@ knn k dss es m x = palabraMasRepetida (map snd (take k (ordenarVecinos dss es m 
 ordenarVecinos :: Datos -> [Etiqueta] -> Medida -> Instancia -> [(Float, Etiqueta)] -- devuelve un a lista de tuplas (distancia, etiqueta) ordenadas por distancia
 ordenarVecinos dss es m x = sort (zip (map (m x) dss) es)
 
-palabraMasRepetida :: (Ord a) => [a] -> a -- este Ord no deberia estar
+palabraMasRepetida :: (Ord a) => [a] -> a 
 palabraMasRepetida = snd . (foldr1 max) . cuentas
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
@@ -113,10 +94,6 @@ separarDatos ds es n p = (tomarTrain ds train1 train2 val, tomarVal ds val train
 tomarTrain :: [a] -> Int -> Int -> Int -> [a]
 tomarTrain xs t1 t2 d = (take t1 xs) ++ (take t2 (drop (t1 + d) xs))
 
-
---tomarTrain xs t1 t2 d = [ xs!!i | i <- [0..(length xs)] , ( (i < t1) || ( (i > t1+d) && (i<t1+d+t2) ) ) ]
---tomarTrain xs t1 t2 d = foldr () () ()
-
 tomarVal :: [a] -> Int -> Int -> [a]
 tomarVal xs t d = take t (drop d xs)  
 
@@ -133,17 +110,12 @@ validate :: Datos -> [Etiqueta] -> Datos -> [Etiqueta] -- valida cada elemento d
 validate ts es vs = map (knn 15 ts es distEuclideana) vs
 
 
+--Ejercicio opcional: Mas extractores
 
-
-
---opcional - extractores
-
-diccionarioClaves :: [(Texto,Int)]		--textosImperativo ++ textosFuncional
+diccionarioClaves :: [(Texto,Int)]		--clavesImperativo ++ clavesFuncional
 diccionarioClaves = [(";",30), ("++",10), ("--",40), ("namespace",100), ("public",50), ("module",40), ("void",40), ("while",40), ("self",30),("class",80), ("for",42), ("cout",80), ("endl",80), ("static",100), (">>>",60), ("//",40), ("argv",50), ("catch",10), ("try",30) ]
 					 ++ [("-->",-100), ("::",-80), ("!!",-80), ("type",-50), ("Eq",-80), ("Show",-100), ("Data.",-100), ("where",-70), ("fold",-200), ("let",-60), ("define",-80), ("defn",-100), ("Nothing",-70), ("Just",-70), ("Maybe",-70)]
 
---textosFuncional :: [(Texto,Int)]
---textosFuncional = [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-40), ("where",-70), ("let",-40)]
 
 --Extractor que calcula un puntaje por programa dependiendo las palabras "claves" que aparecen
 palabrasClaves :: Extractor
@@ -151,22 +123,15 @@ palabrasClaves = (\text -> fromIntegral (puntajeCadena text diccionarioClaves) )
 
 ---funciones utiles intersect, isInfixOf, stripPrefix.. mas en Data.List
 -- Puntaje total del texto comparado con todas las tuplas
-puntajeCadena :: String -> [(Texto,Int)] -> Int
---puntajeCadena t [] = 0
---puntajeCadena t ((x,y):qs) = let res = procesar x (intersect t x ) in
---	if (isInfixOf x t ) then (res*y) + (puntajeCadena t qs) else (puntajeCadena t qs) 						
+puntajeCadena :: Texto -> [(Texto,Int)] -> Int
 puntajeCadena t = foldr f 0
 				  where f = (\(x,y) r -> if (isInfixOf x t ) then r + ((aparicionesEnIntersec x (intersect t x ) ) * y) else r )
 
+-- Cantidad de apariciones de un texto en la interseccion entre el y una clave
 aparicionesEnIntersec :: Texto -> Texto -> Int
 aparicionesEnIntersec t qs = length [ True | c <- tails qs, isPrefixOf t c ]
 
----Precondicion el 1er string si o si está en el segundo que tiene las apariciones del 1ero + basura
---Cuento la cantidad de veces que el 1ero aparece en el 2do
---procesar :: Texto -> Texto -> Int
---procesar t [] = 0
---procesar t qs = if (stripPrefix t qs == Nothing) then 1 else 1 + procesar t (fromJust (stripPrefix t qs ) )
- 
+
 --Otro, similar al de frecuenciasTokens
 frecuenciaClaves :: [Extractor]
 frecuenciaClaves = [(\text -> freqCl text t) | t <- diccionarioClaves]
