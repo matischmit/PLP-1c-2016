@@ -139,7 +139,8 @@ validate ts es vs = map (knn 15 ts es distEuclideana) vs
 --opcional - extractores
 
 diccionarioClaves :: [(Texto,Int)]		--textosImperativo ++ textosFuncional
-diccionarioClaves = [(";",30),("++",10),("--",40),("import",20),("namespace",100),("public",50),("module",40), ("while",40), ("for",42)] ++ [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-100), ("where",-70), ("let",-30)]
+diccionarioClaves = [(";",30), ("++",10), ("--",40), ("namespace",100), ("public",50), ("module",40), ("void",40), ("while",40), ("self",30),("class",80), ("for",42), ("cout",80), ("endl",80), ("static",100), (">>>",60), ("//",40), ("argv",50), ("catch",10), ("try",30) ]
+					 ++ [("-->",-100), ("::",-80), ("!!",-80), ("type",-50), ("Eq",-80), ("Show",-100), ("Data.",-100), ("where",-70), ("fold",-200), ("let",-60), ("define",-80), ("defn",-100), ("Nothing",-70), ("Just",-70), ("Maybe",-70)]
 
 --textosFuncional :: [(Texto,Int)]
 --textosFuncional = [("-->",-10),("::",-70),("type",-30), ("Eq",-40), ("Show",-40), ("where",-70), ("let",-40)]
