@@ -21,31 +21,52 @@ read_file(Stream,[X|L]) :-
 
 
 % listar mensajes secretos de ejemplo.
+ej(0, []).
+
 ej(1, [rombo, cuadrado, espacio, perro, cuadrado, sol, cuadrado]).
 % solo debería ser "la cosa" porque cuadrado != triangulo
 ej(2, [rombo, cuadrado, espacio, perro, triangulo, sol, cuadrado]).
 
 ej(3, [rombo, cuadrado, perro, cuadrado, sol, luna, triangulo, estrella, arbol, gato]).
 
+ej(4, [rombo]).
+
+ej(5, [rombo, espacio, cuadrado, espacio, sol, luna]).
+
 esp(espacio). % no estoy seguro de como usar espacio si no es de esta forma
 
 
-%%%%%%%%5
+%%%%%%%%
 
 % 2- juntar_con(L, J, R)
-juntar_con([X | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con(Ltail, J, LtailRec).
-juntar_con([], J, []).
+juntar_con([X], J, X).
+juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y | Ltail], J, LtailRec).
+juntar_con([], _, []).
 
 % 3- palabras(S, P)
-% VER - no anda bien, anida las listas, por ejemplo anda para el caso:
-% palabras([rombo, cuadrado, espacio, cuadrado, rombo, espacio, rombo], P). -> tira P = [[rombo, cuadrado], [[cuadrado, rombo], [rombo]]]
-% palabras(S, P) :- append(Spref, [espacio | Ssuf], S), append([P1], [P2], P), palabras(Spref, P1), palabras(Ssuf, P2).
+tieneEspacio(P) :- member(L, P), member(espacio, L).
+palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
 
-%palabras([espacio | LS], [XS | XSS]) :- palabras(LS, XSS), !.
-%palabras([X | LS], [[X | XS] | XSS]) :- palabras(LS, [XS | XSS]).
-%palabras([], [[]]).
+% 4- asignar var(A, MI, MF)
+equal([X | LS], [X| LS2]) :- equal(LS, LS2).
+equal([], []).
+
+asignar_var(A, [], [(A, _)]).
+asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :- asignar_var(A, LS, LS2), A \= B.
+asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- equal(LS,LS2). %TODO - buscar el operador para equal
+% TODO - fijarse si el orden importa, o si tiene que tirar todas las opciones
+% asignar_var(rombo, [(cuadrado, _G4013),(rombo, _G4012)], M).
+% M = [(cuadrado, _G4013),(rombo, _G4012)],
+
+% 5- palabras con variables(P, V)
+palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
+
+palabras_aux([], [], _) :- true, !. % TODO - preguntar como hacer un cut aca
+palabras_aux([[] | XSS], [[] | YSS], M) :- palabras_aux(XSS, YSS, M).
+palabras_aux([[X | XS] | XSS], [[Y | YS] | YSS], MI) :- asignar_var((X, Y), MI, MF), palabras_aux([XS | XSS], [YS | YSS], MF).
 
 
-palabras([X | [espacio | LS]], [[X] | XSS]) :- palabras(LS, [XS | XSS]), !.
-palabras([X | LS], [[X |XS] | XSS]) :- palabras(LS, XSS).
-palabras([], []).
+% 6- quitar(E, L, R)
+quitar(A, [B | XS], YS) :- quitar(A, XS, YS), A == B.
+quitar(A, [B | XS], [B | YS]) :- quitar(A, XS, YS), A \= B.
+quitar(_, [], []).
