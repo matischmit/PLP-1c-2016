@@ -39,6 +39,13 @@ juntar_con([], J, []).
 % 3- palabras(S, P)
 % VER - no anda bien, anida las listas, por ejemplo anda para el caso:
 % palabras([rombo, cuadrado, espacio, cuadrado, rombo, espacio, rombo], P). -> tira P = [[rombo, cuadrado], [[cuadrado, rombo], [rombo]]]
-palabras(S, P) :- append(Spref, [espacio | Ssuf], S), append([P1], [P2], P), palabras(Spref, P1), palabras(Ssuf, P2).
-palabras([X | Stail], [X | Ptail]) :- palabras(Stail, Ptail).
+% palabras(S, P) :- append(Spref, [espacio | Ssuf], S), append([P1], [P2], P), palabras(Spref, P1), palabras(Ssuf, P2).
+
+%palabras([espacio | LS], [XS | XSS]) :- palabras(LS, XSS), !.
+%palabras([X | LS], [[X | XS] | XSS]) :- palabras(LS, [XS | XSS]).
+%palabras([], [[]]).
+
+
+palabras([X | [espacio | LS]], [[X] | XSS]) :- palabras(LS, [XS | XSS]), !.
+palabras([X | LS], [[X |XS] | XSS]) :- palabras(LS, XSS).
 palabras([], []).
