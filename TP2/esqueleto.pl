@@ -37,6 +37,8 @@ esp(espacio). % no estoy seguro de como usar espacio si no es de esta forma
 
 
 %%%%%%%%
+%1 - diccionario_lista
+diccionario_lista(X) :- diccionario(S), string_codes(S,X).
 
 % 2- juntar_con(L, J, R)
 juntar_con([X], J, X).
@@ -48,25 +50,43 @@ tieneEspacio(P) :- member(L, P), member(espacio, L).
 palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
 
 % 4- asignar var(A, MI, MF)
-equal([X | LS], [X| LS2]) :- equal(LS, LS2).
-equal([], []).
+%% equal([X | LS], [X| LS2]) :- equal(LS, LS2).
+%% equal([], []).
+equal(XS,XS).
 
 asignar_var(A, [], [(A, _)]).
 asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :- asignar_var(A, LS, LS2), A \= B.
-asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- equal(LS,LS2). %TODO - buscar el operador para equal
+asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- equal(LS,LS2).%LS=LS2. %TODO - buscar el operador para equal
 % TODO - fijarse si el orden importa, o si tiene que tirar todas las opciones
 % asignar_var(rombo, [(cuadrado, _G4013),(rombo, _G4012)], M).
 % M = [(cuadrado, _G4013),(rombo, _G4012)],
 
 % 5- palabras con variables(P, V)
-palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
+%% palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
 
-palabras_aux([], [], _) :- true, !. % TODO - preguntar como hacer un cut aca
-palabras_aux([[] | XSS], [[] | YSS], M) :- palabras_aux(XSS, YSS, M).
-palabras_aux([[X | XS] | XSS], [[Y | YS] | YSS], MI) :- asignar_var((X, Y), MI, MF), palabras_aux([XS | XSS], [YS | YSS], MF).
+%% palabras_aux([], [], _) :- true, !. % TODO - preguntar como hacer un cut aca
+%% palabras_aux([[] | XSS], [[] | YSS], M) :- palabras_aux(XSS, YSS, M).
+%% palabras_aux([[X | XS] | XSS], [[Y | YS] | YSS], MI) :- asignar_var((X, Y), MI, MF), palabras_aux([XS | XSS], [YS | YSS], MF).
 
+palabras_con_variables([],[]).
+palabras_con_variables(XSS,YSS) :- append(XSS,VS), asignaciones(VS,CVS), aux2(XSS,CVS,YSS).
+
+asignaciones([X],M) :- asignar_var(X,[],M).
+asignaciones([X|XS],M2) :- asignaciones(XS,R), asignar_var(X,R,M2).   
+
+aux2([],_,[]).
+aux2([XS|XSS],CVS,YSS) :- aux3(XS,CVS,R), aux2(XSS,CVS,RSS), append([R],RSS,YSS).
+
+aux3([],_,[]).
+aux3([X|XS],CVS,YS) :- member((X,Z),CVS), aux3(XS,CVS,RS), append([Z],RS,YS).
+%%ver si se puede resolver de otra manera
 
 % 6- quitar(E, L, R)
-quitar(A, [B | XS], YS) :- quitar(A, XS, YS), A == B.
-quitar(A, [B | XS], [B | YS]) :- quitar(A, XS, YS), A \= B.
+quitar(A, [B | XS], YS) :- A = B ,quitar(A, XS, YS).
+quitar(A, [B | XS], [B | YS]) :-  quitar(A, XS, YS), A \= B.
 quitar(_, [], []).
+
+%7-cant_distintos(L, S)
+cant_distintos([],0).
+cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.  
+cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M). 
