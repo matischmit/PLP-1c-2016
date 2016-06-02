@@ -33,41 +33,38 @@ ej(4, [rombo]).
 
 ej(5, [rombo, espacio, cuadrado, espacio, sol, luna]).
 
-esp(espacio). % no estoy seguro de como usar espacio si no es de esta forma
+% IMPORTANTE: No se permite usar findall, setof ni cuts. Sí se permite not.
 
-
-%%%%%%%%
-%1 - diccionario_lista
+%1 - diccionario_lista(?L)
 diccionario_lista(X) :- diccionario(S), string_codes(S,X).
 
-% 2- juntar_con(L, J, R)
+% 2- juntar_con(?L, ?J, ?R)
 juntar_con([X], J, X).
 juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y | Ltail], J, LtailRec).
 juntar_con([], _, []).
 
-% 3- palabras(S, P)
+% 3- palabras(?S, ?P)
+% OBS: No pueden estar ambas sin instanciar
 tieneEspacio(P) :- member(L, P), member(espacio, L).
 palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
 
 % 4- asignar var(A, MI, MF)
-%% equal([X | LS], [X| LS2]) :- equal(LS, LS2).
-%% equal([], []).
+% OBS: Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
 equal(XS,XS).
 
 asignar_var(A, [], [(A, _)]).
 asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :- asignar_var(A, LS, LS2), A \= B.
-asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- equal(LS,LS2).%LS=LS2. %TODO - buscar el operador para equal
-% TODO - fijarse si el orden importa, o si tiene que tirar todas las opciones
-% asignar_var(rombo, [(cuadrado, _G4013),(rombo, _G4012)], M).
-% M = [(cuadrado, _G4013),(rombo, _G4012)],
+asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- equal(LS,LS2).%LS=LS2. %TODO - PREGUNTAR buscar el operador para equal
+
 
 % 5- palabras con variables(P, V)
-%% palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
+palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
 
-%% palabras_aux([], [], _) :- true, !. % TODO - preguntar como hacer un cut aca
-%% palabras_aux([[] | XSS], [[] | YSS], M) :- palabras_aux(XSS, YSS, M).
-%% palabras_aux([[X | XS] | XSS], [[Y | YS] | YSS], MI) :- asignar_var((X, Y), MI, MF), palabras_aux([XS | XSS], [YS | YSS], MF).
+palabras_aux([], [], _).
+palabras_aux([[] | XSS], [[] | YSS], M) :- palabras_aux(XSS, YSS, M).
+palabras_aux([[X | XS] | XSS], [[Y | YS] | YSS], MI) :- asignar_var((X, Y), MI, MF), palabras_aux([XS | XSS], [YS | YSS], MF).
 
+/*5- Otra resolución:
 palabras_con_variables([],[]).
 palabras_con_variables(XSS,YSS) :- append(XSS,VS), asignaciones(VS,CVS), aux2(XSS,CVS,YSS).
 
@@ -79,14 +76,19 @@ aux2([XS|XSS],CVS,YSS) :- aux3(XS,CVS,R), aux2(XSS,CVS,RSS), append([R],RSS,YSS)
 
 aux3([],_,[]).
 aux3([X|XS],CVS,YS) :- member((X,Z),CVS), aux3(XS,CVS,RS), append([Z],RS,YS).
-%%ver si se puede resolver de otra manera
+%%ver si se puede resolver de otra manera*/
 
 % 6- quitar(E, L, R)
 quitar(A, [B | XS], YS) :- A = B ,quitar(A, XS, YS).
 quitar(A, [B | XS], [B | YS]) :-  quitar(A, XS, YS), A \= B.
 quitar(_, [], []).
+% PREGUNTAR si la lista puede tener variables (en un ejemplo tiene, pero la definición dice que no)
 
 %7-cant_distintos(L, S)
 cant_distintos([],0).
 cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.  
 cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M). 
+% PREGUNTAR cant_distintos([A, B, A], N) -> N = 2? y si A = B?
+% PREGUNTAR - qué significa que algo puede no instanciarse? simplemente que, al no instanciarse, no se cuegla?
+% PREGUNTAR - como justificamos las instanciaciones?
+% como justificamos que palabras(S, P) se cuelga?
