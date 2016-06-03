@@ -44,17 +44,16 @@ juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y 
 juntar_con([], _, []).
 
 % 3- palabras(?S, ?P)
-% OBS: No pueden estar ambas sin instanciar
+% OBS: No pueden estar ambas sin instanciar, porque los member de tieneEspacio "fuerzan" que haya
+%      un espacio en una lista de P, y nunca puede pasar el not(tieneEspacio(P)).
 tieneEspacio(P) :- member(L, P), member(espacio, L).
 palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
 
 % 4- asignar var(A, MI, MF)
 % OBS: Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
-equal(XS,XS).
-
 asignar_var(A, [], [(A, _)]).
 asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :- asignar_var(A, LS, LS2), A \= B.
-asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- equal(LS,LS2).%LS=LS2. %TODO - PREGUNTAR buscar el operador para equal
+asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- LS=LS2.
 
 
 % 5- palabras con variables(P, V)
@@ -94,9 +93,3 @@ quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
 cant_distintos([],0).
 cant_distintos([_],1).
 cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
-
-
-% PREGUNTAR cant_distintos([A, B, A], N) -> N = 2? y si A = B?
-% PREGUNTAR - qué significa que algo puede no instanciarse? simplemente que, al no instanciarse, no se cuegla?
-% PREGUNTAR - como justificamos las instanciaciones?
-% como justificamos que palabras(S, P) se cuelga? 
