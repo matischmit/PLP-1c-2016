@@ -79,10 +79,12 @@ aux3([X|XS],CVS,YS) :- member((X,Z),CVS), aux3(XS,CVS,RS), append([Z],RS,YS).
 %%ver si se puede resolver de otra manera*/
 
 % 6- quitar(E, L, R)
-quitar(A, [B | XS], YS) :- A = B ,quitar(A, XS, YS).
-quitar(A, [B | XS], [B | YS]) :-  quitar(A, XS, YS), A \= B.
 quitar(_, [], []).
-% PREGUNTAR si la lista puede tener variables (en un ejemplo tiene, pero la definición dice que no)
+quitar(A, [B | XS], YS) :- A == B, quitar(A, XS, YS).
+quitar(A, [B | XS], R) :-  A \= B, nonvar(A), nonvar(B), quitar(A, XS, YS), append([B],YS,R).
+quitar(A, [B | XS], R) :-  A \== B, var(A), var(B), quitar(A, XS, YS), append([B],YS,R).
+quitar(A, [B | XS], [B|YS]) :- var(A), nonvar(B), quitar(A, XS, YS).    %%ver si se pueden meter estas 2 en 1 sola.
+quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
 
 %7-cant_distintos(L, S)
 cant_distintos([],0).
