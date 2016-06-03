@@ -39,7 +39,7 @@ ej(5, [rombo, espacio, cuadrado, espacio, sol, luna]).
 diccionario_lista(X) :- diccionario(S), string_codes(S,X).
 
 % 2- juntar_con(?L, ?J, ?R)
-juntar_con([X], J, X).
+juntar_con([X], _, X).
 juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y | Ltail], J, LtailRec).
 juntar_con([], _, []).
 
@@ -87,10 +87,16 @@ quitar(A, [B | XS], [B|YS]) :- var(A), nonvar(B), quitar(A, XS, YS).    %%ver si
 quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
 
 %7-cant_distintos(L, S)
+%% cant_distintos([],0).
+%% cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.  
+%% cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M). 
+
 cant_distintos([],0).
-cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.  
-cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M). 
+cant_distintos([_],1).
+cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
+
+
 % PREGUNTAR cant_distintos([A, B, A], N) -> N = 2? y si A = B?
 % PREGUNTAR - qué significa que algo puede no instanciarse? simplemente que, al no instanciarse, no se cuegla?
 % PREGUNTAR - como justificamos las instanciaciones?
-% como justificamos que palabras(S, P) se cuelga?
+% como justificamos que palabras(S, P) se cuelga? 
