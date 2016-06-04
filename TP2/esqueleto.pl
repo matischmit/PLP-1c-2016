@@ -68,7 +68,7 @@ palabras_con_variables([],[]).
 palabras_con_variables(XSS,YSS) :- append(XSS,VS), asignaciones(VS,CVS), aux2(XSS,CVS,YSS).
 
 asignaciones([X],M) :- asignar_var(X,[],M).
-asignaciones([X|XS],M2) :- asignaciones(XS,R), asignar_var(X,R,M2).   
+asignaciones([X|XS],M2) :- asignaciones(XS,R), asignar_var(X,R,M2).
 
 aux2([],_,[]).
 aux2([XS|XSS],CVS,YSS) :- aux3(XS,CVS,R), aux2(XSS,CVS,RSS), append([R],RSS,YSS).
@@ -87,12 +87,20 @@ quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
 
 %7-cant_distintos(L, S)
 %% cant_distintos([],0).
-%% cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.  
-%% cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M). 
+%% cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.
+%% cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M).
 
 cant_distintos([],0).
 cant_distintos([_],1).
 cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
+
+%% 8 - descifrar(S+, M?)
+
+% unifica una lista de listas de variables libres con palabras del diccionario
+unificar([], []).
+unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, unificar(TailX, TailY).
+
+descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V), unificar(V, N), juntar_con(N, 0'\s, Nflat), string_codes(M, Nflat).
 
 %10 - mensajes_mas_parejos(S, M)
 
