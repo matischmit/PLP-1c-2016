@@ -93,3 +93,28 @@ quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
 cant_distintos([],0).
 cant_distintos([_],1).
 cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
+
+%10 - mensajes_mas_parejos(S, M)
+
+foo(S) :- member(S,["casa miento", "casa de flor", "casa flor de"]).  %Resultado de ej(3, S), descifrar_sin_espacios(S, M).
+
+mensajes_mas_parejos(W) :- findall(M, foo(M), X), min_sd(X,W).  %TODO: cambiar foo por descifrar_sin.., ver si se puede evitar usar findall.
+
+min_sd([X],X).
+min_sd([X|XS],X) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z=<Q.
+min_sd([X|XS],Y) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z>=Q.
+
+sd(S,Q) :- atomic_list_concat(LP, " ", S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
+
+%% lista_palabras_en_frase(S,LP) :- atomic_list_concat(LP, " ", S).
+
+%Funcion map de longitud en lista
+map_length([],[]).
+map_length([X|XS],Y) :- string_length(X,R), map_length(XS,RS), append([R],RS,Y).
+
+%Media de lista
+mean(XS,Y) :- length(XS,N), sumlist(XS,S), Y is S/N.
+
+% Sumas de cuadrados de diferencia con la media (desv.estandar sin la division y el sqrt)
+calculo([],_,0).
+calculo([X|XS],M,Q) :- Y is (X-M)^2, calculo(XS,M,Z), Q is Y+Z .
