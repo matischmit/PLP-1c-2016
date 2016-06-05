@@ -105,6 +105,15 @@ descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V),
                    cant_distintos(S, DistS), cant_distintos(Nflat, DistNflat),
                    DistS = DistNflat, string_codes(M, Nflat).
 
+%% 9 - descifrar_sin_espacios(S, M)
+notempty([_|_]).
+
+agregar_espacios(S, S).
+agregar_espacios(S, Sesp) :- append(S1, S2, S), notempty(S1), notempty(S2), agregar_espacios(S2, S2esp), juntar_con([S1, S2esp], espacio, Sesp) .
+
+
+descifrar_sin_espacios(S, M) :- agregar_espacios(S, Sesp), descifrar(Sesp, M).
+
 %10 - mensajes_mas_parejos(S, M)
 
 foo(S) :- member(S,["casa miento", "casa de flor", "casa flor de"]).  %Resultado de ej(3, S), descifrar_sin_espacios(S, M).
