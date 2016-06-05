@@ -49,14 +49,16 @@ juntar_con([], _, []).
 tieneEspacio(P) :- member(L, P), member(espacio, L).
 palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
 
-% 4- asignar var(A, MI, MF)
+% 4- asignar var(?A, ?MI, ?MF)
+% OBS: No pueden estar MI y MF sin instanciar, porque, al caer en el segundo caso de asignar_var, A siempre se puede unificar con B
+%      (porque ninguna de las dos listas está instanciada) y entonces A \= B nunca vale.
 % OBS: Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
 asignar_var(A, [], [(A, _)]).
 asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :- asignar_var(A, LS, LS2), A \= B.
 asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- LS=LS2.
 
 
-% 5- palabras con variables(P, V)
+% 5- palabras con variables(?P, ?V)
 palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
 
 palabras_aux([], [], _).
@@ -77,7 +79,9 @@ aux3([],_,[]).
 aux3([X|XS],CVS,YS) :- member((X,Z),CVS), aux3(XS,CVS,RS), append([Z],RS,YS).
 %%ver si se puede resolver de otra manera*/
 
-% 6- quitar(E, L, R)
+% 6- quitar(+E, ?L, ?R)
+% OBS: E tiene que estar instanciado, porque de lo contrario, el comportamiento esperado es quitar a dicha variable de la lista
+%      (Ya que se pueden quitar átomos o variables de la lista)
 quitar(_, [], []).
 quitar(A, [B | XS], YS) :- A == B, quitar(A, XS, YS).
 quitar(A, [B | XS], R) :-  A \= B, nonvar(A), nonvar(B), quitar(A, XS, YS), append([B],YS,R).
@@ -94,7 +98,7 @@ cant_distintos([],0).
 %% cant_distintos([_],1).
 cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
 
-%% 8 - descifrar(S+, M?)
+%% 8 - descifrar(+S, ?M)
 
 % unifica una lista de listas de variables libres con palabras del diccionario
 unificar([], []).
