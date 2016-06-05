@@ -100,7 +100,10 @@ cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
 unificar([], []).
 unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, unificar(TailX, TailY).
 
-descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V), unificar(V, N), juntar_con(N, 0'\s, Nflat), string_codes(M, Nflat).
+descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V),
+                   unificar(V, N), juntar_con(N, 0'\s, Nflat),
+                   cant_distintos(S, DistS), cant_distintos(Nflat, DistNflat),
+                   DistS = DistNflat, string_codes(M, Nflat).
 
 %10 - mensajes_mas_parejos(S, M)
 
