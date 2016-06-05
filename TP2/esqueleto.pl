@@ -91,7 +91,7 @@ quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
 %% cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M).
 
 cant_distintos([],0).
-cant_distintos([_],1).
+%% cant_distintos([_],1).
 cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
 
 %% 8 - descifrar(S+, M?)
