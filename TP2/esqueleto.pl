@@ -120,9 +120,7 @@ descifrar_sin_espacios(S, M) :- agregar_espacios(S, Sesp), descifrar(Sesp, M).
 
 %10 - mensajes_mas_parejos(S, M)
 
-foo(S) :- member(S,["casa miento", "casa de flor", "casa flor de"]).  %Resultado de ej(3, S), descifrar_sin_espacios(S, M).
-
-mensajes_mas_parejos(W) :- findall(M, foo(M), X), min_sd(X,W).  %TODO: cambiar foo por descifrar_sin.., ver si se puede evitar usar findall.
+mensajes_mas_parejos(M,W) :- findall(X,descifrar_sin_espacios(M,X),Z), min_sd(Z,W).  %TODO: ver si se puede evitar usar findall.
 
 min_sd([X],X).
 min_sd([X|XS],X) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z=<Q.
