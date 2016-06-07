@@ -19,7 +19,6 @@ read_file(Stream,[X|L]) :-
     assertz(diccionario(X)),
     read_file(Stream,L), !.
 
-
 % listar mensajes secretos de ejemplo.
 ej(0, []).
 
@@ -47,7 +46,7 @@ tests :- test_juntar_con, test_juntar_con2, test_juntar_con3, test_palabras, tes
 %2
 test_juntar_con :- juntar_con([[rombo], [cuadrado], [sol], [luna]], espacio, [rombo, espacio, cuadrado, espacio, sol, espacio, luna]).
 test_juntar_con2 :- juntar_con([[rombo, cuadrado], [sol], [luna]], espacio, [rombo, cuadrado, espacio, sol, espacio, luna]).
-test_juntar_con3 :- juntar_con([], X, []).
+test_juntar_con3 :- juntar_con([], _, []).
 
 %3
 test_palabras :- palabras([a, a, a, a, espacio, b, b, b, b, espacio, c, c, c], [[a,a,a,a], [b,b,b,b], [c,c,c]]).
@@ -55,7 +54,7 @@ test_palabras2 :- palabras([], []).
 
 %4
 test_asignar_var :- asignar_var(a, [(a, A), (b, B), (c, C), (d, D)], [(a, A), (b, B), (c, C), (d, D)]).
-test_asignar_var2 :- asignar_var(a, [(b, B), (c, C), (d, D)], [(b, B), (c, C), (d, D), (a, A)]).
+test_asignar_var2 :- asignar_var(a, [(b, B), (c, C), (d, D)], [(b, B), (c, C), (d, D), (a, _)]).
 
 %5
 test_palabras_con_variables:- palabras_con_variables([[a,a],[b,b],[c,c,c]], [[A,A], [B,B], [C,C,C]]).
@@ -66,7 +65,7 @@ test_quitar :- quitar(a,[A,A,A, B, a, B, B],[A,A,A, B, B, B]).
 test_quitar2 :- quitar(A, [A,A,A, B, a, B, B], [B, a, B, B]).
 
 %7
-test_cant_distintos :- cant_distintos([A,B,A,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C], 3).
+test_cant_distintos :- cant_distintos([A,_,A,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C], 3).
 test_cant_distintos2 :- cant_distintos([], 0).
 test_cant_distintos3 :- cant_distintos([A,A,A,A,A,a,a,a,a,a], 2).
 
@@ -98,10 +97,10 @@ juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y 
 juntar_con([], _, []).
 
 %% 3 - palabras(?S, ?P)
-%% OBS: No pueden estar ambas sin instanciar, porque los member de tieneEspacio "fuerzan" que haya
-%%      un espacio en una lista de P, y nunca puede pasar el not(tieneEspacio(P)).
-tieneEspacio(P) :- member(L, P), member(espacio, L).
-palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
+%% OBS: No pueden estar ambas sin instanciar, porque los member de tiene_espacio "fuerzan" que haya
+%%      un espacio en una lista de P, y nunca puede pasar el not(tiene_espacio(P)).
+tiene_espacio(P) :- member(L, P), member(espacio, L).
+palabras(S, P) :- juntar_con(P, espacio, S), not(tiene_espacio(P)).
 
 %% 4 - asignar var(?A, ?MI, ?MF)
 %% OBS: No pueden estar MI y MF sin instanciar, porque, al caer en el segundo caso de asignar_var, A siempre se puede unificar con B
@@ -133,8 +132,9 @@ cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
 
 
 %% 8 - descifrar(+S, ?M)
+%% OBS: S tiene que estar instanciado porque se llama a cant_distintos(S, DistS) y cant_distintos requiere que S este instanciada
 descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V),
-                   unificar(V, N), juntar_con(N, 0'\s, Nflat),
+                   unificar(V, N), juntar_con(N, 32, Nflat),
                    cant_distintos(S, DistS), cant_distintos(Nflat, DistNflat),
                    DistS = DistNflat, string_codes(M, Nflat).
 
@@ -143,28 +143,23 @@ unificar([], []).
 unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, unificar(TailX, TailY).
 
 
-%% 9 - descifrar_sin_espacios(S, M)
+%% 9 - descifrar_sin_espacios(+S, ?M)
+%% S tiene que estar instanciada porque, de lo contrario, agregar_espacios(S, Sesp) instancia en Sesp listas de variables libres y espacios.
+%% Al intentar descifrar eso, se llama a palabras(Sesp, P). palabras llama a juntar_con que divide por espacios y pide not(tiene_espacios(P)).
+%% el not prueba todas las instanciaciones posibles y falla siempre porque puede unificar las variables libres con espacios.
 descifrar_sin_espacios(S, M) :- agregar_espacios(S, Sesp), descifrar(Sesp, M).
 notempty([_|_]).
 
 agregar_espacios(S, S).
 agregar_espacios(S, Sesp) :- append(S1, S2, S), notempty(S1), notempty(S2), agregar_espacios(S2, S2esp), juntar_con([S1, S2esp], espacio, Sesp) .
 
-
-
-%% 10 - mensajes_mas_parejos(S, M)
+%% 10 - mensajes_mas_parejos(+M, ?X)
+%% M tiene que estar instanciado porque descifrar_sin_espacios(M,X) requiere que M esté instanciado.
 mensajes_mas_parejos(M,X) :-  descifrar_sin_espacios(M,X), not(uno_mas_parejo(M,X)).
 
 uno_mas_parejo(M,X) :- descifrar_sin_espacios(M,Y), X \= Y, sd(X,Z), sd(Y,Q), Z > Q.
 
-%%Esto no sería necesario..
-%% min_sd([X],X).
-%% min_sd([X|XS],X) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z=<Q.
-%% min_sd([X|XS],Y) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z>=Q.
-
-sd(S,Q) :- atomic_list_concat(LP, ' ', S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
-
-%% lista_palabras_en_frase(S,LP) :- atomic_list_concat(LP, " ", S).
+sd(S,Q) :- juntar_con(LP, 32, S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 
 %Funcion map de longitud en lista
 map_length([],[]).
