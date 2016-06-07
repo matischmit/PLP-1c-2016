@@ -31,107 +31,138 @@ ej(3, [rombo, cuadrado, perro, cuadrado, sol, luna, triangulo, estrella, arbol, 
 
 ej(4, [rombo]).
 
-ej(5, [rombo, espacio, cuadrado, espacio, sol, luna]).
+ej(5, [rombo, espacio, cuadrado, espacio, sol, espacio, luna]).
+
+ej(6, [rombo, cuadrado, sol, luna]).
+
+
+%%%%%%%%%%% TESTS %%%%%%%%%%%%
+%TODOS
+tests :- test_juntar_con, test_juntar_con2, test_juntar_con3, test_palabras, test_palabras2, test_asignar_var, test_asignar_var2,
+         test_palabras_con_variables, test_palabras_con_variables2, test_quitar, test_quitar2, test_cant_distintos,
+         test_cant_distintos2, test_cant_distintos3, test_descifrar, test_descifrar2, test_descifrar3, test_descifrar4,
+         test_descifrar_sin_espacios,test_descifrar_sin_espacios2, test_descifrar_sin_espacios3,
+         test_mensajes_mas_parejos, test_mensajes_mas_parejos2, test_mensajes_mas_parejos3.
+
+%2
+test_juntar_con :- juntar_con([[rombo], [cuadrado], [sol], [luna]], espacio, [rombo, espacio, cuadrado, espacio, sol, espacio, luna]).
+test_juntar_con2 :- juntar_con([[rombo, cuadrado], [sol], [luna]], espacio, [rombo, cuadrado, espacio, sol, espacio, luna]).
+test_juntar_con3 :- juntar_con([], X, []).
+
+%3
+test_palabras :- palabras([a, a, a, a, espacio, b, b, b, b, espacio, c, c, c], [[a,a,a,a], [b,b,b,b], [c,c,c]]).
+test_palabras2 :- palabras([], []).
+
+%4
+test_asignar_var :- asignar_var(a, [(a, A), (b, B), (c, C), (d, D)], [(a, A), (b, B), (c, C), (d, D)]).
+test_asignar_var2 :- asignar_var(a, [(b, B), (c, C), (d, D)], [(b, B), (c, C), (d, D), (a, A)]).
+
+%5
+test_palabras_con_variables:- palabras_con_variables([[a,a],[b,b],[c,c,c]], [[A,A], [B,B], [C,C,C]]).
+test_palabras_con_variables2:- palabras_con_variables([], []).
+
+%6
+test_quitar :- quitar(a,[A,A,A, B, a, B, B],[A,A,A, B, B, B]).
+test_quitar2 :- quitar(A, [A,A,A, B, a, B, B], [B, a, B, B]).
+
+%7
+test_cant_distintos :- cant_distintos([A,B,A,C,C,C,C,C,C,C,C,C,C,C,C,C,C,C], 3).
+test_cant_distintos2 :- cant_distintos([], 0).
+test_cant_distintos3 :- cant_distintos([A,A,A,A,A,a,a,a,a,a], 2).
+
+%8
+test_descifrar :- cargar('dicc0.txt'), descifrar([rombo, cuadrado, espacio, perro, cuadrado, sol, cuadrado], 'la casa').
+test_descifrar2 :- cargar('dicc0.txt'), descifrar([cuadrado, rombo, espacio, perro, rombo, sol, rombo], 'la casa'). 
+test_descifrar3 :- cargar('dicc0.txt'), descifrar([cuadrado, rombo, espacio, perro, circulo, sol, rombo], 'la cosa'). 
+test_descifrar4 :- cargar('dicc1.txt'), descifrar([m, i, e, n, t, o, espacio, d, e], 'miento de'). 
+
+%9
+test_descifrar_sin_espacios :- cargar('dicc0.txt'), descifrar_sin_espacios([l,a,c,a,s,a], 'la casa').
+test_descifrar_sin_espacios2 :- cargar('dicc0.txt'), descifrar_sin_espacios([l,a,c,o,s,a], 'la cosa').
+test_descifrar_sin_espacios3 :- cargar('dicc0.txt'), descifrar_sin_espacios([c,a,s,a,c,o,s,a], 'casa cosa').
+
+%10
+test_mensajes_mas_parejos :- cargar('dicc1.txt'), mensajes_mas_parejos([c,a,s,a,d,e,f,l,o,r], 'casa de flor').
+test_mensajes_mas_parejos2 :- cargar('dicc1.txt'), mensajes_mas_parejos([c,a,s,a,d,e,f,l,o,r], 'casa flor de').
+test_mensajes_mas_parejos2 :- cargar('dicc1.txt'), mensajes_mas_parejos([d,e,f,l,o,r,c,a,s,a], 'de flor casa').
+test_mensajes_mas_parejos3 :- cargar('dicc1.txt'), mensajes_mas_parejos([d,e,f,l,o,r,c,a,s,a], 'flor de casa').
 
 % IMPORTANTE: No se permite usar findall, setof ni cuts. Sí se permite not.
 
-%1 - diccionario_lista(?L)
+%% 1 - diccionario_lista(?L)
 diccionario_lista(X) :- diccionario(S), string_codes(S,X).
 
-% 2- juntar_con(?L, ?J, ?R)
+%% 2 - juntar_con(?L, ?J, ?R)
 juntar_con([X], _, X).
 juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y | Ltail], J, LtailRec).
 juntar_con([], _, []).
 
-% 3- palabras(?S, ?P)
-% OBS: No pueden estar ambas sin instanciar, porque los member de tieneEspacio "fuerzan" que haya
-%      un espacio en una lista de P, y nunca puede pasar el not(tieneEspacio(P)).
+%% 3 - palabras(?S, ?P)
+%% OBS: No pueden estar ambas sin instanciar, porque los member de tieneEspacio "fuerzan" que haya
+%%      un espacio en una lista de P, y nunca puede pasar el not(tieneEspacio(P)).
 tieneEspacio(P) :- member(L, P), member(espacio, L).
 palabras(S, P) :- juntar_con(P, espacio, S), not(tieneEspacio(P)).
 
-% 4- asignar var(?A, ?MI, ?MF)
-% OBS: No pueden estar MI y MF sin instanciar, porque, al caer en el segundo caso de asignar_var, A siempre se puede unificar con B
-%      (porque ninguna de las dos listas está instanciada) y entonces A \= B nunca vale.
-% OBS: Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
+%% 4 - asignar var(?A, ?MI, ?MF)
+%% OBS: No pueden estar MI y MF sin instanciar, porque, al caer en el segundo caso de asignar_var, A siempre se puede unificar con B
+%%      (porque ninguna de las dos listas está instanciada) y entonces A \= B nunca vale.
+%% OBS: Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
 asignar_var(A, [], [(A, _)]).
 asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :- asignar_var(A, LS, LS2), A \= B.
 asignar_var(A, [(A, C) | LS], [(A, C) | LS2]) :- LS=LS2.
 
 
-% 5- palabras con variables(?P, ?V)
+%% 5 - palabras con variables(?P, ?V)
 palabras_con_variables(XSS, YSS) :- palabras_aux(XSS, YSS, []).
 
 palabras_aux([], [], _).
 palabras_aux([[] | XSS], [[] | YSS], M) :- palabras_aux(XSS, YSS, M).
 palabras_aux([[X | XS] | XSS], [[Y | YS] | YSS], MI) :- asignar_var((X, Y), MI, MF), palabras_aux([XS | XSS], [YS | YSS], MF).
 
-/*5- Otra resolución:
-palabras_con_variables([],[]).
-palabras_con_variables(XSS,YSS) :- append(XSS,VS), asignaciones(VS,CVS), aux2(XSS,CVS,YSS).
-
-asignaciones([X],M) :- asignar_var(X,[],M).
-asignaciones([X|XS],M2) :- asignaciones(XS,R), asignar_var(X,R,M2).
-
-aux2([],_,[]).
-aux2([XS|XSS],CVS,YSS) :- aux3(XS,CVS,R), aux2(XSS,CVS,RSS), append([R],RSS,YSS).
-
-aux3([],_,[]).
-aux3([X|XS],CVS,YS) :- member((X,Z),CVS), aux3(XS,CVS,RS), append([Z],RS,YS).
-%%ver si se puede resolver de otra manera*/
-
-% 6- quitar(+E, ?L, ?R)
-% OBS: E tiene que estar instanciado, porque de lo contrario, el comportamiento esperado es quitar a dicha variable de la lista
-%      (Ya que se pueden quitar átomos o variables de la lista)
+%% 6 - quitar(?E, +L, ?R)
+%% OBS: No es reversible en L, porque en caso de no instanciar L no genera todas las listas que tengan a E como elemento.
 quitar(_, [], []).
-quitar(A, [B | XS], YS) :- A == B, quitar(A, XS, YS).
-quitar(A, [B | XS], R) :-  A \= B, nonvar(A), nonvar(B), quitar(A, XS, YS), append([B],YS,R).
-quitar(A, [B | XS], R) :-  A \== B, var(A), var(B), quitar(A, XS, YS), append([B],YS,R).
-quitar(A, [B | XS], [B|YS]) :- var(A), nonvar(B), quitar(A, XS, YS).    %%ver si se pueden meter estas 2 en 1 sola.
-quitar(A, [B | XS], [B|YS]) :- nonvar(A), var(B), quitar(A, XS, YS).
+quitar(A, [B|XS], YS) :- A == B,  quitar(A, XS, YS).
+quitar(A, [B|XS], [B|YS]) :- A \== B, quitar(A, XS, YS).
 
-%7-cant_distintos(L, S)
-%% cant_distintos([],0).
-%% cant_distintos([X|XS],N) :- not(member(X,XS)), cant_distintos(XS,M), N is M+1.
-%% cant_distintos([X|XS],M) :- member(X,XS), cant_distintos(XS,M).
 
+%% 7 - cant_distintos(+L, ?S)
+%% OBS: Hay que instanciar L porque quitar necesita a L instanciado
 cant_distintos([],0).
-%% cant_distintos([_],1).
 cant_distintos([X|XS],N) :- quitar(X,XS,R), cant_distintos(R,M), N is M+1.
 
+
 %% 8 - descifrar(+S, ?M)
-
-% unifica una lista de listas de variables libres con palabras del diccionario
-unificar([], []).
-unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, unificar(TailX, TailY).
-
 descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V),
                    unificar(V, N), juntar_con(N, 0'\s, Nflat),
                    cant_distintos(S, DistS), cant_distintos(Nflat, DistNflat),
                    DistS = DistNflat, string_codes(M, Nflat).
 
+% unifica una lista de listas de variables libres con palabras del diccionario
+unificar([], []).
+unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, unificar(TailX, TailY).
+
+
 %% 9 - descifrar_sin_espacios(S, M)
+descifrar_sin_espacios(S, M) :- agregar_espacios(S, Sesp), descifrar(Sesp, M).
 notempty([_|_]).
 
 agregar_espacios(S, S).
 agregar_espacios(S, Sesp) :- append(S1, S2, S), notempty(S1), notempty(S2), agregar_espacios(S2, S2esp), juntar_con([S1, S2esp], espacio, Sesp) .
 
 
-descifrar_sin_espacios(S, M) :- agregar_espacios(S, Sesp), descifrar(Sesp, M).
 
-%10 - mensajes_mas_parejos(S, M)
+%% 10 - mensajes_mas_parejos(S, M)
+mensajes_mas_parejos(M,X) :-  descifrar_sin_espacios(M,X), not(uno_mas_parejo(M,X)).
 
-%% mensajes_mas_parejos(M,W) :- findall(X,descifrar_sin_espacios(M,X),Z), min_sd(Z,W).  %TODO: ver si se puede evitar usar findall.
-
-mensajes_mas_parejos(M,X) :-  descifrar_sin_espacios(M,X), not(aux(M,X)).
-
-aux(M,X) :- descifrar_sin_espacios(M,Y), X \= Y, sd(X,Z), sd(Y,Q), Z > Q.
+uno_mas_parejo(M,X) :- descifrar_sin_espacios(M,Y), X \= Y, sd(X,Z), sd(Y,Q), Z > Q.
 
 %%Esto no sería necesario..
 %% min_sd([X],X).
 %% min_sd([X|XS],X) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z=<Q.
 %% min_sd([X|XS],Y) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z>=Q.
 
-sd(S,Q) :- atomic_list_concat(LP, " ", S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
+sd(S,Q) :- atomic_list_concat(LP, ' ', S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 
 %% lista_palabras_en_frase(S,LP) :- atomic_list_concat(LP, " ", S).
 
