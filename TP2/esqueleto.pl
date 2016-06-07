@@ -120,11 +120,16 @@ descifrar_sin_espacios(S, M) :- agregar_espacios(S, Sesp), descifrar(Sesp, M).
 
 %10 - mensajes_mas_parejos(S, M)
 
-mensajes_mas_parejos(M,W) :- findall(X,descifrar_sin_espacios(M,X),Z), min_sd(Z,W).  %TODO: ver si se puede evitar usar findall.
+%% mensajes_mas_parejos(M,W) :- findall(X,descifrar_sin_espacios(M,X),Z), min_sd(Z,W).  %TODO: ver si se puede evitar usar findall.
 
-min_sd([X],X).
-min_sd([X|XS],X) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z=<Q.
-min_sd([X|XS],Y) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z>=Q.
+mensajes_mas_parejos(M,X) :-  descifrar_sin_espacios(M,X), not(aux(M,X)).
+
+aux(M,X) :- descifrar_sin_espacios(M,Y), X \= Y, sd(X,Z), sd(Y,Q), Z > Q.
+
+%%Esto no sería necesario..
+%% min_sd([X],X).
+%% min_sd([X|XS],X) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z=<Q.
+%% min_sd([X|XS],Y) :- min_sd(XS,Y), sd(X,Z), sd(Y,Q), Z>=Q.
 
 sd(S,Q) :- atomic_list_concat(LP, " ", S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 
