@@ -71,9 +71,10 @@ test_cant_distintos3 :- cant_distintos([A,A,A,A,A,a,a,a,a,a], 2).
 
 %8
 test_descifrar :- cargar('dicc0.txt'), descifrar([rombo, cuadrado, espacio, perro, cuadrado, sol, cuadrado], 'la casa').
-test_descifrar2 :- cargar('dicc0.txt'), descifrar([cuadrado, rombo, espacio, perro, rombo, sol, rombo], 'la casa'). 
-test_descifrar3 :- cargar('dicc0.txt'), descifrar([cuadrado, rombo, espacio, perro, circulo, sol, rombo], 'la cosa'). 
-test_descifrar4 :- cargar('dicc1.txt'), descifrar([m, i, e, n, t, o, espacio, d, e], 'miento de'). 
+test_descifrar2 :- cargar('dicc0.txt'), descifrar([cuadrado, rombo, espacio, perro, rombo, sol, rombo], 'la casa').
+test_descifrar3 :- cargar('dicc0.txt'), descifrar([cuadrado, rombo, espacio, perro, circulo, sol, rombo], 'la cosa').
+test_descifrar4 :- cargar('dicc1.txt'), descifrar([m, i, e, n, t, o, espacio, d, e], 'miento de').
+test_descifrar_largo :- cargar('10000_formas.txt'), time(descifrar([t,a,s,a,s,espacio,l,e,v,a,n,t,a,espacio,c,u,a,r,t,a,espacio,t,a,z,a,espacio,c,o,n,c,l,u,s,i,o,n,e,s,espacio,n,e,c,e,s,i,t,a,n,espacio,n,e,g,a,t,i,v,a,espacio,d,i,e,t,a,espacio,a,l,c,a,n,z,a,d,o,espacio,a,n,d,a,r],'tasas levanta cuarta taza conclusiones necesitan negativa dieta alcanzado andar')).
 
 %9
 test_descifrar_sin_espacios :- cargar('dicc0.txt'), descifrar_sin_espacios([l,a,c,a,s,a], 'la casa').
@@ -96,7 +97,7 @@ diccionario_lista(X) :- diccionario(S), string_codes(S,X).
 %% Con -L +J +R, genera varios resultados posibles, ya que podría ser que J pertenezca a las listas de L, o que hayan sido agregadas posteriormente.
 %%         Por ejemplo: "juntar_con(L1,b,[a,b,c])." tiene dos resultados: L1 = [[a, b, c]] ; L1 = [[a], [c]] ;
 %% Con -L -J +R, instancia J para cada elemento "elem" de R, y genera los resultados correspondientes a juntar_con(L,elem,R) para cada uno de ellos.
-%% Con -L ?J -R, se queda instanciando L en una lista de n listas vacías, y a R en u 
+%% Con -L ?J -R, se queda instanciando L en una lista de n listas vacías, y a R en u
 juntar_con([X], _, X).
 juntar_con([X, Y | Ltail], J, R) :- append(X, [J | LtailRec], R), juntar_con([Y | Ltail], J, LtailRec).
 juntar_con([], _, []).
@@ -147,7 +148,8 @@ descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V),
 
 % unifica una lista de listas de variables libres con palabras del diccionario
 unificar([], []).
-unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, unificar(TailX, TailY).
+unificar([X | TailX], [Y | TailY]) :- diccionario_lista(Y), Y=X, cant_distintos(Y, DistY), cant_distintos(X, DistX),
+                                      DistY = DistX, unificar(TailX, TailY).
 
 
 
