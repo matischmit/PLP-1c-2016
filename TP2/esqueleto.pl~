@@ -168,6 +168,7 @@ mensajes_mas_parejos(M,X) :-  descifrar_sin_espacios(M,X), not(uno_mas_parejo(M,
 uno_mas_parejo(M,X) :- descifrar_sin_espacios(M,Y), X \= Y, sd(X,Z), sd(Y,Q), Z > Q.
 
 
+
 sd(S,Q) :- string_codes(S, SLista), juntar_con(LP, 32, SLista), not(tiene_caracter_espacio(LP)), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 
 % tiene_caracter_espacio(?P). Es idéntica a 'tiene_espacio', excepto que busca el caracter espacio (32) en vez del atomo 'espacio'. No quisimos abstraer ambas en una sola funcion para no
@@ -176,6 +177,7 @@ tiene_caracter_espacio(P) :- member(L,P), member(32,L).
 
 % Otra solución para sd: sd(S,Q) :- atomic_list_concat(LP, ' ', S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 % No lo resolvimos de esta forma porque nos pareció mejor aprovechar las funciones que tenemos hechas (juntar_con) en vez de las de Prolog (atomic_list_concat)
+
 
 
 
