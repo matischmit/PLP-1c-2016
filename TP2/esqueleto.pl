@@ -54,7 +54,7 @@ test_palabras2 :- palabras([], []).
 
 %4
 test_asignar_var :- asignar_var(a, [(a, A), (b, B), (c, C), (d, D)], [(a, A), (b, B), (c, C), (d, D)]).
-test_asignar_var2 :- asignar_var(a, [(b, B), (c, C), (d, D)], [(b, B), (c, C), (d, D), (a, _)]).
+test_asignar_var2 :- asignar_var(a, [(b, B), (c, C), (d, D)], [(a, _), (b, B), (c, C), (d, D)]).
 
 %5
 test_palabras_con_variables:- palabras_con_variables([[a,a],[b,b],[c,c,c]], [[A,A], [B,B], [C,C,C]]).
@@ -109,13 +109,12 @@ tiene_espacio(P) :- member(L, P), member(espacio, L).
 palabras(S, P) :- juntar_con(P, espacio, S), not(tiene_espacio(P)).
 
 %% 4 - asignar var(?A, ?MI, ?MF)
-%% OBS: No pueden estar MI y MF sin instanciar, porque, al caer en el segundo caso de asignar_var, A siempre se puede unificar con B
-%%      (porque ninguna de las dos listas está instanciada) y entonces A \= B nunca vale.
-%% OBS: Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
-asignar_var(A, [], [(A, _)]).
-asignar_var(A, [(B, C) | LS], [(B, C) | LS2]) :-  A \= B, asignar_var(A, LS, LS2).
-asignar_var(A, [(A, C) | LS], [(A, C) | LS]).
-
+%% OBS: A siempre puede estar instanciada o sin instanciar.
+%%      Si ambas MI y MF no están instanciadas, siempre cae en el primer caso, A pertenece a MI, MI es igual a MF,
+%%      y genera las MI como listas con (a, VAR) con miembro.
+%% Preguntamos y el orden NO importa, y sólo tiene que devolver una opción
+asignar_var(A, MI, MI) :- member((A,C), MI).
+asignar_var(A, MI, [(A,C)| MI]) :- not(member((A,C), MI)).
 
 %% 5 - palabras con variables(+P, ?V)
 %% OBS: Si P no está instanciado no se cuelga, pero no es capaz de generar átomos.
@@ -172,14 +171,12 @@ uno_mas_parejo(M,X) :- descifrar_sin_espacios(M,Y), X \= Y, sd(X,Z), sd(Y,Q), Z 
 
 sd(S,Q) :- string_codes(S, SLista), juntar_con(LP, 32, SLista), not(tiene_caracter_espacio(LP)), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 
-% tiene_caracter_espacio(?P). Es idéntica a 'tiene_espacio', excepto que busca el caracter espacio (32) en vez del atomo 'espacio'. No quisimos abstraer ambas en una sola funcion para no
-% ensuciar la resolución del ejercicio 3.
+% tiene_caracter_espacio(?P). Es idéntica a 'tiene_espacio', excepto que busca el caracter espacio (32) en vez del atomo 'espacio'.
+% No quisimos abstraer ambas en una sola funcion para no ensuciar la resolución del ejercicio 3.
 tiene_caracter_espacio(P) :- member(L,P), member(32,L).
 
 % Otra solución para sd: sd(S,Q) :- atomic_list_concat(LP, ' ', S), map_length(LP,LT) , mean(LT,M), length(LT,N), calculo(LT,M,Y), Z is Y/N, Q is sqrt(Z)  .
 % No lo resolvimos de esta forma porque nos pareció mejor aprovechar las funciones que tenemos hechas (juntar_con) en vez de las de Prolog (atomic_list_concat)
-
-
 
 %Funcion map de longitud en lista
 map_length([],[]).
@@ -191,16 +188,3 @@ mean(XS,Y) :- length(XS,N), sumlist(XS,S), Y is S/N.
 % Sumas de cuadrados de diferencia con la media (desv.estandar sin la division y el sqrt)
 calculo([],_,0).
 calculo([X|XS],M,Q) :- Y is (X-M)^2, calculo(XS,M,Z), Q is Y+Z .
-
-%%%%%%%%%%%%%
-%desvest(+L, ?D)
-%Instancia en D el desvest^2 de la lista de numeros L
-desvest(L, D) :- promedio(L, P), length(L, N), desvestaux(L, P, N, D2), D is D2 / N.
-
-%desvestaux(+L, +P, +N, ?D)
-desvestaux([], _, _, 0).
-desvestaux([L|LS], P, N, Res) :-
-	desvestaux(LS, P, N, Rec), Res is (L - P)*(L - P) + Rec.
-
-%promedio(+L, ?N)
-promedio(L, N) :- sum_list(L, N2), length(L, N3), N is N2 / N3.
